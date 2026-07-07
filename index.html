@@ -381,7 +381,7 @@
             `;
 
             // 🔗 클라우드 시크릿 키가 적용된 완벽 규격 엔드포인트 작동
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${cloudKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cloudKey}`;
 
             const response = await fetch(url, {
                 method: "POST",
