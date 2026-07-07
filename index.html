@@ -324,7 +324,7 @@
         } catch (error) { console.error(error); }
     }
 
-// 2. 동적 프롬프트 학습 체계로 진화한 AI 수집 분석 함수
+// 2. 동적 프롬프트 학습 체계로 진화한 AI 수집 분석 함수 (최신 구글 표준 규격 반영)
     async function getAiCoachingAdvice() {
         const aiTextEl = document.getElementById('aiResponseText');
         
@@ -387,27 +387,25 @@
         - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
         `;
 
-        // 🔗 주소 규격 완벽 정정 (models/ 경로 추가)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${savedApiKey}`;
+        // 🔗 [최종 해결책] v1 주소 체계와 최신 gemini-1.5-flash 모델 결합의 표준 엔드포인트
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${savedApiKey}`;
 
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }]
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }]
                 })
             });
 
             const result = await response.json();
             
             if (result.error) {
-                console.error("Gemini API 에러:", result.error);
-                if(result.error.status === "INVALID_ARGUMENT" || result.error.message.includes("API key")) {
-                    aiTextEl.innerText = "⚠️ API 키 오류가 발생했습니다. 구글 AI 스튜디오에서 키가 활성화 상태인지 확인 후 마이페이지에 다시 입력해 주세요.";
-                } else {
-                    aiTextEl.innerText = `AI 응답 실패: ${result.error.message}`;
-                }
+                console.error("Gemini API 에러 상세:", result.error);
+                aiTextEl.innerText = `⚠️ AI 응답 에러 (${result.error.code}): ${result.error.message}\n구글 AI 스튜디오에서 키가 활성(Active) 상태인지 확인해 주세요.`;
                 return;
             }
 
