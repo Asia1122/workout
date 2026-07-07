@@ -1,0 +1,409 @@
+:root{
+    --primary:#4a90e2;
+    --red:#ff6b6b;
+    --green:#4ecdc4;
+    --yellow:#ffbe0b;
+    --gray:#9aa0a6;
+
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --text:#333;
+
+    --radius:16px;
+    --shadow:0 4px 14px rgba(0,0,0,.08);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+}
+
+body{
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    max-width:500px;
+
+    margin:auto;
+
+    padding:16px;
+}
+
+.hidden{
+
+    display:none !important;
+
+}
+
+.header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.header h1{
+
+    font-size:1.5rem;
+
+}
+
+.user-panel{
+
+    display:flex;
+
+    gap:8px;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+}
+
+button{
+
+    cursor:pointer;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:var(--primary);
+
+    color:white;
+
+    padding:10px 14px;
+
+    transition:.2s;
+
+    font-weight:600;
+
+}
+
+button:hover{
+
+    opacity:.9;
+
+}
+
+button:active{
+
+    transform:scale(.97);
+
+}
+
+input{
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    padding:10px;
+
+    width:100%;
+
+    outline:none;
+
+}
+
+input:focus{
+
+    border-color:var(--primary);
+
+}
+
+.calendar-card,
+.record-card,
+.stats-card,
+.ai-card,
+.routine-card{
+
+    background:var(--card);
+
+    border-radius:var(--radius);
+
+    padding:18px;
+
+    margin-bottom:18px;
+
+    box-shadow:var(--shadow);
+
+}
+
+.calendar-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+.calendar-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(7,1fr);
+
+    gap:6px;
+
+}
+
+.day{
+
+    aspect-ratio:1;
+
+    background:#fafafa;
+
+    border-radius:12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    border:2px solid transparent;
+
+    transition:.2s;
+
+}
+
+.day:hover{
+
+    background:#eef6ff;
+
+}
+
+.day.today{
+
+    border-color:var(--primary);
+
+}
+
+.day.selected{
+
+    background:#dfefff;
+
+}
+
+.dots{
+
+    display:flex;
+
+    gap:2px;
+
+    margin-top:4px;
+
+}
+
+.dot{
+
+    width:6px;
+
+    height:6px;
+
+    border-radius:50%;
+
+}
+
+.buttons{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:10px;
+
+    margin-top:15px;
+
+}
+
+.buttons button{
+
+    padding:14px;
+
+}
+
+.buttons button.active{
+
+    box-shadow:0 0 0 3px rgba(0,0,0,.08);
+
+}
+
+.buttons button[data-type=A]{
+
+    background:var(--red);
+
+}
+
+.buttons button[data-type=B]{
+
+    background:var(--green);
+
+}
+
+.buttons button[data-type=Run]{
+
+    background:var(--yellow);
+
+    color:#333;
+
+}
+
+.buttons button[data-type=Rest]{
+
+    background:var(--gray);
+
+}
+
+#runBox{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:15px;
+
+}
+
+.etc-area{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:15px;
+
+}
+
+#badgeArea{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-top:20px;
+
+}
+
+.badge{
+
+    padding:6px 10px;
+
+    border-radius:999px;
+
+    color:white;
+
+    font-size:.85rem;
+
+}
+
+.badge.A{
+
+    background:var(--red);
+
+}
+
+.badge.B{
+
+    background:var(--green);
+
+}
+
+.badge.Run{
+
+    background:var(--yellow);
+
+    color:#222;
+
+}
+
+.badge.Rest{
+
+    background:var(--gray);
+
+}
+
+.badge.Etc{
+
+    background:#666;
+
+}
+
+.stats-card p{
+
+    margin-top:8px;
+
+    font-size:1rem;
+
+}
+
+.ai-card .title{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+#aiResult{
+
+    white-space:pre-wrap;
+
+    line-height:1.6;
+
+    font-size:.9rem;
+
+}
+
+.routine-card h3{
+
+    margin-top:15px;
+
+    margin-bottom:6px;
+
+}
+
+@media (max-width:480px){
+
+    body{
+
+        padding:12px;
+
+    }
+
+    .buttons{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
