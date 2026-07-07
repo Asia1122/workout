@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>내 운동 기록장 (Firebase)</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary: #4a90e2;
+            --accent-a: #ff6b6b;
+            --accent-b: #4ecdc4;
+            --accent-run: #ffbe0b;
+            --accent-rest: #a2a2a2;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 450px; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        h2 { text-align: center; margin-bottom: 15px; color: #222; font-size: 1.4rem; }
+        
+        /* 달력 스타일 */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
+        .calendar-header button { background: none; border: none; font-size: 1.2rem; padding: 5px 10px; cursor: pointer; color: var(--primary); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-name { font-size: 0.8rem; color: #888; font-weight: bold; padding-bottom: 5px; }
+        .day { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 8px; padding: 4px; font-size: 0.9rem; cursor: pointer; border: 2px solid transparent; position: relative; }
+        .day.today { border-color: var(--primary); font-weight: bold; }
+        .day.selected { background: #e3f2fd; }
+        .day .dots { display: flex; gap: 2px; justify-content: center; width: 100%; min-height: 6px; overflow: hidden; flex-wrap: wrap; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        
+        /* 입력창 스타일 */
+        .record-box { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #edf2f7; }
+        .selected-date-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); text-align: center; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .option-btn { padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; background: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+        
+        .option-btn[data-type="A"].active { background: var(--accent-a); color: white; border-color: var(--accent-a); }
+        .option-btn[data-type="B"].active { background: var(--accent-b); color: white; border-color: var(--accent-b); }
+        .option-btn[data-type="Run"].active { background: var(--accent-run); color: white; border-color: var(--accent-run); }
+        .option-btn[data-type="Rest"].active { background: var(--accent-rest); color: white; border-color: var(--accent-rest); }
+        
+        .etc-box { display: flex; gap: 8px; margin-top: 10px; }
+        .etc-input { flex: 1; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
+        .etc-btn { padding: 10px 15px; background: #4a90e2; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .badge-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+        .badge { font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; color: white; font-weight: bold; }
+        .badge.A { background: var(--accent-a); }
+        .badge.B { background: var(--accent-b); }
+        .badge.Run { background: var(--accent-run); }
+        .badge.Rest { background: var(--accent-rest); }
+        .badge.Etc { background: #718096; }
+        
+        /* 로딩 인디케이터 */
+        #loading { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>💪 내 운동 달력 (클라우드)</h2>
+    <div id="loading">데이터 불러오는 중...</div>
+    
+    <!-- 달력 헤더 -->
+    <div class="calendar-header">
+        <button id="prevMonth">◀</button>
+        <span id="currentMonthYear"></span>
+        <button id="nextMonth">▶</button>
+    </div>
+    
+    <!-- 달력 그리드 -->
+    <div class="calendar-grid" id="calendarGrid"></div>
+    
+    <!-- 입력 및 체크 섹션 -->
+    <div class="record-box">
+        <div class="selected-date-title" id="selectedDateText">날짜를 선택해 주세요</div>
+        
+        <div class="options-grid">
+            <button class="option-btn" data-type="A">🔴 A루틴</button>
+            <button class="option-btn" data-type="B">🟢 B루틴</button>
+            <button class="option-btn" data-type="Run">🟡 달리기</button>
+            <button class="option-btn" data-type="Rest">⚪ 휴식</button>
+        </div>
+        
+        <div class="etc-box">
+            <input type="text" class="etc-input" id="etcInput" placeholder="기타 항목 직접 입력 (예: 밴드풀업)">
+            <button class="etc-btn" id="saveEtc">추가</button>
+        </div>
+        
+        <div class="badge-list" id="dayBadgeList"></div>
+    </div>
+</div>
+
+<!-- Firebase 모듈 스크립트 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, deleteDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 보내주신 파이어베이스 설정값 적용
+    const firebaseConfig = {
+        apiKey: "AIzaSyBKB-jF9gcxB1SSgmBoitd_bcjW7tRosB0",
+        authDomain: "workout-6b5dd.firebaseapp.com",
+        projectId: "workout-6b5dd",
+        storageBucket: "workout-6b5dd.firebasestorage.app",
+        messagingSenderId: "292085015914",
+        appId: "1:292085015914:web:02fc103748068644f9f113",
+        measurementId: "G-W766339PZZ"
+    };
+
+    // 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentDate = new Date();
+    let selectedDateStr = getFormattedDate(currentDate);
+    let workoutData = {}; // 전체 운동 데이터 보관용
+
+    const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+    const colors = { A: '#ff6b6b', B: '#4ecdc4', Run: '#ffbe0b', Rest: '#a2a2a2', Etc: '#718096' };
+
+    function getFormattedDate(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // 1. 페이지 로드 시 파이어베이스 DB에서 전체 데이터를 한 번에 가져오는 함수
+    async function loadAllDataFromFirebase() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "workouts"));
+            workoutData = {};
+            querySnapshot.forEach((doc) => {
+                workoutData[doc.id] = doc.data().exercises;
+            });
+            document.getElementById('loading').style.display = 'none';
+            initCalendar();
+        } catch (error) {
+            console.error("데이터 로드 실패:", error);
+            document.getElementById('loading').innerText = "데이터 로드 실패 ❌";
+        }
+    }
+
+    // 2. 데이터 변경 시 파이어베이스 실시간 동기화 함수
+    async function syncWithFirebase(dateStr) {
+        try {
+            if (workoutData[dateStr] && workoutData[dateStr].length > 0) {
+                // 데이터가 있으면 저장/업데이트
+                await setDoc(doc(db, "workouts", dateStr), {
+                    exercises: workoutData[dateStr]
+                });
+            } else {
+                // 데이터가 비었으면 DB에서 문서 삭제
+                await deleteDoc(doc(db, "workouts", dateStr));
+                if (workoutData[dateStr]) delete workoutData[dateStr];
+            }
+            initCalendar();
+        } catch (error) {
+            alert("DB 동기화 실패! 인터넷 연결을 확인하세요.");
+            console.error(error);
+        }
+    }
+
+    function initCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        document.getElementById('currentMonthYear').innerText = `${year}년 ${monthNames[month]}`;
+        
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        
+        const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+        daysOfWeek.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'day-name';
+            el.innerText = d;
+            grid.appendChild(el);
+        });
+        
+        for (let i = 0; i < firstDayIndex; i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+        
+        const todayStr = getFormattedDate(new Date());
+        for (let i = 1; i <= lastDay; i++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'day';
+            const thisDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            
+            dayEl.innerHTML = `<span>${i}</span><div class="dots"></div>`;
+            if (thisDateStr === todayStr) dayEl.classList.add('today');
+            if (thisDateStr === selectedDateStr) dayEl.classList.add('selected');
+            
+            const dotsEl = dayEl.querySelector('.dots');
+            if (workoutData[thisDateStr]) {
+                workoutData[thisDateStr].forEach(item => {
+                    const dot = document.createElement('span');
+                    dot.className = 'dot';
+                    dot.style.backgroundColor = colors[item.type] || colors.Etc;
+                    dotsEl.appendChild(dot);
+                });
+            }
+            
+            dayEl.addEventListener('click', () => {
+                selectedDateStr = thisDateStr;
+                initCalendar();
+            });
+            grid.appendChild(dayEl);
+        }
+        
+        updateInputSection();
+    }
+
+    function updateInputSection() {
+        const [y, m, d] = selectedDateStr.split('-');
+        document.getElementById('selectedDateText').innerText = `${parseInt(m)}월 ${parseInt(d)}일 운동 선택`;
+        
+        const currentEntries = workoutData[selectedDateStr] || [];
+        
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            const type = btn.getAttribute('data-type');
+            const hasType = currentEntries.some(e => e.type === type);
+            if (hasType) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        
+        const badgeList = document.getElementById('dayBadgeList');
+        badgeList.innerHTML = '';
+        currentEntries.forEach((entry, idx) => {
+            const badge = document.createElement('span');
+            badge.className = `badge ${entry.type}`;
+            badge.innerText = entry.text;
+            badge.style.cursor = 'pointer';
+            badge.addEventListener('click', () => removeEntry(idx));
+            badgeList.appendChild(badge);
+        });
+    }
+
+    // 기본 체크박스 클릭 이벤트
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.getAttribute('data-type');
+            const text = this.innerText;
+            
+            if (!workoutData[selectedDateStr]) workoutData[selectedDateStr] = [];
+            
+            const index = workoutData[selectedDateStr].findIndex(e => e.type === type);
+            if (index > -1) {
+                workoutData[selectedDateStr].splice(index, 1);
+            } else {
+                workoutData[selectedDateStr].push({ type, text });
+            }
+            
+            syncWithFirebase(selectedDateStr);
+        });
+    });
+
+    // 기타 항목 추가 이벤트
+    document.getElementById('saveEtc').addEventListener('click', () => {
+        const input = document.getElementById('etcInput');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        if (!workoutData[selectedDateStr]) workoutData[selectedDateStr] = [];
+        workoutData[selectedDateStr].push({ type: 'Etc', text: text });
+        
+        input.value = '';
+        syncWithFirebase(selectedDateStr);
+    });
+
+    function removeEntry(index) {
+        workoutData[selectedDateStr].splice(index, 1);
+        syncWithFirebase(selectedDateStr);
+    }
+
+    // 월 이동 버튼 이벤트
+    document.getElementById('prevMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); initCalendar(); });
+    document.getElementById('nextMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); initCalendar(); });
+
+    // 앱 시작 시 클라우드 데이터 로딩
+    loadAllDataFromFirebase();
+</script>
+</body>
+</html>
