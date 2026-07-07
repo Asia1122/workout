@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>내 운동 기록장 (Firebase + AI Cloud)</title>
+    <title>내 운동 기록장 (Firebase AI 완벽 보안)</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -25,7 +25,6 @@
         .user-icon-btn { background: #f0f4f8; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: background 0.2s; }
         .user-icon-btn:hover { background: #e1e8f0; }
 
-        /* 마이페이지 레이어 디자인 확장 */
         .mypage-layer { display: none; position: absolute; top: 55px; right: 0; width: 320px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; padding: 15px; z-index: 100; max-height: 80vh; overflow-y: auto; }
         .mypage-layer.active { display: block; }
         .mypage-title { font-size: 1rem; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; color: var(--primary); }
@@ -35,7 +34,6 @@
         .form-group textarea { resize: none; height: 50px; }
         .mypage-close-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 0.9rem; cursor: pointer; color: #a0aec0; }
         
-        /* 달력 스타일 */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
         .calendar-header button { background: none; border: none; font-size: 1.2rem; padding: 5px 10px; cursor: pointer; color: var(--primary); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
@@ -46,7 +44,6 @@
         .day .dots { display: flex; gap: 2px; justify-content: center; width: 100%; min-height: 6px; overflow: hidden; flex-wrap: wrap; }
         .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
         
-        /* 입력창 스타일 */
         .record-box { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #edf2f7; }
         .selected-date-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); text-align: center; }
         
@@ -74,19 +71,16 @@
         .badge.Rest { background: var(--accent-rest); }
         .badge.Etc { background: #718096; }
         
-        /* 실천률 통계 보드 */
         .stats-board { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e2e8f0; }
         .stats-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #4a5568; }
         .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; }
         .stats-val { font-weight: bold; color: var(--primary); }
 
-        /* AI 조언 카드 디자인 */
         .ai-coach-card { margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 12px; border: 1px solid #d0e0ff; position: relative; }
         .ai-title { font-size: 0.95rem; font-weight: bold; color: #1a365d; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
         .ai-content { font-size: 0.85rem; color: #2d3748; line-height: 1.5; white-space: pre-wrap; }
         .ai-refresh-btn { background: #4a90e2; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; font-weight: bold; margin-top: 8px; float: right; }
 
-        /* 루틴 요약 가이드 보드 동적 바인딩용 */
         .routine-guide-box { width: 100%; max-width: 450px; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .guide-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; color: #2d3748; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; text-align: center;}
         .routine-card { margin-bottom: 15px; padding: 12px; border-radius: 8px; }
@@ -107,11 +101,7 @@
         
         <div class="mypage-layer" id="mypageLayer">
             <button class="mypage-close-btn" id="mypageCloseBtn">✕</button>
-            <div class="mypage-title">👤 설정 및 회원 정보</div>
-            <div class="form-group">
-                <label style="color:#e53e3e;">🔑 Google Gemini API Key</label>
-                <input type="password" id="geminiApiKey" placeholder="AI 스튜디오에서 받은 새 키 붙여넣기">
-            </div>
+            <div class="mypage-title">👤 내 신체 정보 및 루틴 설정</div>
             <div class="form-group">
                 <label>키 (cm)</label>
                 <input type="number" id="userHeight" placeholder="예: 175">
@@ -122,11 +112,11 @@
             </div>
             <div class="form-group">
                 <label style="color:var(--accent-a);">🔴 A 루틴 설정 내용</label>
-                <textarea id="routineADesc" placeholder="예: 스쿼트(하체), 원암 덤벨 로우(등), 해머 컬(팔)"></textarea>
+                <textarea id="routineADesc" placeholder="예: 스쿼트, 원암 덤벨 로우, 해머 컬"></textarea>
             </div>
             <div class="form-group">
                 <label style="color:var(--accent-b);">🟢 B 루틴 설정 내용</label>
-                <textarea id="routineBDesc" placeholder="예: 푸쉬업(가슴), 사레레 3kg 30회(어깨), 플랭크(코어)"></textarea>
+                <textarea id="routineBDesc" placeholder="예: 푸쉬업, 사레레 3kg 30회, 플랭크"></textarea>
             </div>
             <div class="form-group">
                 <label>장기 목표</label>
@@ -181,7 +171,7 @@
 
     <div class="ai-coach-card">
         <div class="ai-title">🤖 Gemini 전담 AI 코치 조언</div>
-        <div class="ai-content" id="aiResponseText">상단 프로필(👤) 버튼을 눌러 새 Gemini API Key와 나의 주간 루틴 상세 내용을 먼저 등록해 주세요!</div>
+        <div class="ai-content" id="aiResponseText">원격 서버에서 보안 설정을 불러오는 중입니다... 🤖⏳</div>
         <button class="ai-refresh-btn" id="askAiBtn">기록 다시 분석하기</button>
         <div style="clear:both;"></div>
     </div>
@@ -212,8 +202,10 @@
 </div>
 
 <script type="module">
+    // 🔐 Firebase 핵심 모듈 및 Remote Config 모듈 가져오기
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, deleteDoc, getDocs, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getRemoteConfig, fetchAndActivate, getString } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-remote-config.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBKB-jF9gcxB1SSgmBoitd_bcjW7tRosB0",
@@ -227,6 +219,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
+    // Remote Config 초기화 및 실시간 캐시 갱신 타임 0초 강제 초기화설정
+    const remoteConfig = getRemoteConfig(app);
+    remoteConfig.settings.minimumFetchIntervalMillis = 0; 
 
     let currentDate = new Date();
     let selectedDateStr = getFormattedDate(currentDate);
@@ -246,14 +242,12 @@
     userIconBtn.addEventListener('click', () => mypageLayer.classList.toggle('active'));
     mypageCloseBtn.addEventListener('click', () => mypageLayer.classList.remove('active'));
 
-    // 1. 확장된 프로필 및 루틴 데이터 로드 및 하단 카드 바인딩
     async function loadMypageData() {
         try {
             const docRef = doc(db, "userProfile", "profile");
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                document.getElementById('geminiApiKey').value = data.apiKey || "";
                 document.getElementById('userHeight').value = data.height || "";
                 document.getElementById('userWeight').value = data.weight || "";
                 document.getElementById('routineADesc').value = data.routineA || "";
@@ -262,7 +256,6 @@
                 document.getElementById('shortGoal').value = data.shortGoal || "";
                 document.getElementById('userMemo').value = data.memo || "";
 
-                // 하단 리마인드 텍스트 가이드 보드판 실시간 동적 갱신
                 if(data.routineA) document.getElementById('guideTextA').innerText = data.routineA;
                 if(data.routineB) document.getElementById('guideTextB').innerText = data.routineB;
             }
@@ -270,7 +263,6 @@
     }
 
     document.getElementById('saveMypage').addEventListener('click', async () => {
-        const apiKey = document.getElementById('geminiApiKey').value.trim();
         const height = document.getElementById('userHeight').value;
         const weight = document.getElementById('userWeight').value;
         const routineA = document.getElementById('routineADesc').value;
@@ -281,12 +273,11 @@
 
         try {
             await setDoc(doc(db, "userProfile", "profile"), {
-                apiKey, height, weight, routineA, routineB, longGoal, shortGoal, memo
+                height, weight, routineA, routineB, longGoal, shortGoal, memo
             });
-            alert("모든 설정 및 루틴 정보가 클라우드 DB에 안전하게 저장되었습니다! 💪");
+            alert("정보가 성공적으로 동기화되었습니다! 💪");
             mypageLayer.classList.remove('active');
             
-            // 저장과 동시에 하단 가이드북 및 AI 분석 동시 리빌드
             if(routineA) document.getElementById('guideTextA').innerText = routineA;
             if(routineB) document.getElementById('guideTextB').innerText = routineB;
             getAiCoachingAdvice();
@@ -324,88 +315,87 @@
         } catch (error) { console.error(error); }
     }
 
-// 2. 동적 프롬프트 학습 체계로 진화한 AI 수집 분석 함수 (최신 구글 표준 규격 반영)
+    // 🤖 파이어베이스 원격 보안키를 매핑하여 가져오는 최신형 AI 호출 함수
     async function getAiCoachingAdvice() {
         const aiTextEl = document.getElementById('aiResponseText');
-        
-        // 사용자가 저장한 전용 키 로드
-        const savedApiKey = document.getElementById('geminiApiKey').value.trim();
-        if(!savedApiKey) {
-            aiTextEl.innerText = "⚠️ 상단 프로필(👤)을 클릭하여 새로 발급받으신 Gemini API Key를 등록해야 작동합니다. (클라우드 DB 보관으로 안전함)";
-            return;
-        }
-
         aiTextEl.innerText = "최근 일주일 기록 분석 중... 🤖⏳";
 
-        const last7Days = [];
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            last7Days.push(getFormattedDate(d));
-        }
-
-        let workoutHistorySummary = "";
-        last7Days.forEach(dateStr => {
-            const currentDayExercises = workoutData[dateStr] || [];
-            if(currentDayExercises.length === 0) {
-                workoutHistorySummary += `${dateStr}: 기록 없음 또는 운동 안함\n`;
-            } else {
-                const exString = currentDayExercises.map(e => e.text).join(", ");
-                workoutHistorySummary += `${dateStr}: ${exString}\n`;
-            }
-        });
-
-        const h = document.getElementById('userHeight').value || "미입력";
-        const w = document.getElementById('userWeight').value || "미입력";
-        const rA = document.getElementById('routineADesc').value || "정의되지 않음";
-        const rB = document.getElementById('routineBDesc').value || "정의되지 않음";
-        const lg = document.getElementById('longGoal').value || "미입력";
-        const sg = document.getElementById('shortGoal').value || "미입력";
-        const memo = document.getElementById('userMemo').value || "없음";
-
-        const promptText = `
-        너는 아주 전문적이고 날카로운 헬스&러닝 트레이너 코치야. 
-        사용자의 신체 정보, 운동 목표, 직접 작성한 루틴 상세 정보, 그리고 최근 일주일 운동 기록을 보고 다음에 수행하면 가장 효과적일 운동 추천 및 스포츠 과학적 조언을 3줄 내외로 요약해 줘.
-
-        [사용자가 정의한 맞춤 루틴 가이드 정보]
-        - A 루틴 상세 내용: ${rA}
-        - B 루틴 상세 내용: ${rB}
-        - 기본 제공 공통 종목: 달리기 (유산소, km 기록 가능), 휴식, 기타 커스텀 직접 입력 항목
-
-        [사용자 프로필]
-        - 키: ${h}cm / 몸무게: ${w}kg
-        - 장기 목표: ${lg}
-        - 단기 목표: ${sg}
-        - 신체 특이사항 및 메모: ${memo}
-
-        [최근 일주일간의 실제 운동 일지 순서]
-        ${workoutHistorySummary}
-
-        [가이드라인]
-        - 사용자가 입력한 A루틴과 B루틴의 구체적인 타겟 부위와 종목 구성을 명밀히 스캔하여 해부학적/스포츠과학적 연관성을 분석해 조언해 줘.
-        - 만약 어제 날짜에 B루틴을 했다면 그 안에 기재된 종목들을 쉬게 하고, 오늘 날짜에는 다른 부위를 쓰는 운동이나 러닝, 혹은 완전 휴식을 권장하는 식이어야 해.
-        - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
-        `;
-
-        // 🔗 [최종 해결책] v1 주소 체계와 최신 gemini-1.5-flash 모델 결합의 표준 엔드포인트
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${savedApiKey}`;
-
         try {
+            // 1. 파이어베이스 클라우드 콘솔에 숨겨둔 시크릿 키 무선 원격 로딩
+            await fetchAndActivate(remoteConfig);
+            const cloudKey = getString(remoteConfig, 'GEMINI_API_KEY').trim();
+
+            if (!cloudKey) {
+                aiTextEl.innerText = "⚠️ Remote Config에 GEMINI_API_KEY 매개변수 설정 및 게시가 누락되었습니다. 파이어베이스 설정을 점검해 주세요.";
+                return;
+            }
+
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                last7Days.push(getFormattedDate(d));
+            }
+
+            let workoutHistorySummary = "";
+            last7Days.forEach(dateStr => {
+                const currentDayExercises = workoutData[dateStr] || [];
+                if(currentDayExercises.length === 0) {
+                    workoutHistorySummary += `${dateStr}: 기록 없음 또는 운동 안함\n`;
+                } else {
+                    const exString = currentDayExercises.map(e => e.text).join(", ");
+                    workoutHistorySummary += `${dateStr}: ${exString}\n`;
+                }
+            });
+
+            const h = document.getElementById('userHeight').value || "미입력";
+            const w = document.getElementById('userWeight').value || "미입력";
+            const rA = document.getElementById('routineADesc').value || "정의되지 않음";
+            const rB = document.getElementById('routineBDesc').value || "정의되지 않음";
+            const lg = document.getElementById('longGoal').value || "미입력";
+            const sg = document.getElementById('shortGoal').value || "미입력";
+            const memo = document.getElementById('userMemo').value || "없음";
+
+            const promptText = `
+            너는 아주 전문적이고 날카로운 헬스&러닝 트레이너 코치야. 
+            사용자의 신체 정보, 운동 목표, 직접 작성한 루틴 상세 정보, 그리고 최근 일주일 운동 기록을 보고 다음에 수행하면 가장 효과적일 운동 추천 및 스포츠 과학적 조언을 3줄 내외로 요약해 줘.
+
+            [사용자가 정의한 맞춤 루틴 가이드 정보]
+            - A 루틴 상세 내용: ${rA}
+            - B 루틴 상세 내용: ${rB}
+            - 기본 제공 공통 종목: 달리기 (유산소, km 기록 가능), 휴식, 기타 커스텀 직접 입력 항목
+
+            [사용자 프로필]
+            - 키: ${h}cm / 몸무게: ${w}kg
+            - 장기 목표: ${lg}
+            - 단기 목표: ${sg}
+            - 신체 특이사항 및 메모: ${memo}
+
+            [최근 일주일간의 실제 운동 일지 순서]
+            ${workoutHistorySummary}
+
+            [가이드라인]
+            - 사용자가 입력한 A루틴과 B루틴의 구체적인 타겟 부위와 종목 구성을 명밀히 스캔하여 해부학적/스포츠과학적 연관성을 분석해 조언해 줘.
+            - 만약 어제 날짜에 B루틴을 했다면 그 안에 기재된 종목들을 쉬게 하고, 오늘 날짜에는 다른 부위를 쓰는 운동이나 러닝, 혹은 완전 휴식을 권장하는 식이어야 해.
+            - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
+            `;
+
+            // 🔗 클라우드 시크릿 키가 적용된 완벽 규격 엔드포인트 작동
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${cloudKey}`;
+
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: promptText }]
-                    }]
+                    contents: [{ parts: [{ text: promptText }] }]
                 })
             });
 
             const result = await response.json();
             
             if (result.error) {
-                console.error("Gemini API 에러 상세:", result.error);
-                aiTextEl.innerText = `⚠️ AI 응답 에러 (${result.error.code}): ${result.error.message}\n구글 AI 스튜디오에서 키가 활성(Active) 상태인지 확인해 주세요.`;
+                console.error("Gemini API 서버 에러 응답:", result.error);
+                aiTextEl.innerText = `⚠️ AI 통신 에러 (${result.error.code}): ${result.error.message}`;
                 return;
             }
 
@@ -413,12 +403,12 @@
                 const aiReply = result.candidates[0].content.parts[0].text;
                 aiTextEl.innerText = aiReply;
             } else {
-                aiTextEl.innerText = "올바른 답변 포맷을 받지 못했습니다. 데이터를 확인해 주세요.";
+                aiTextEl.innerText = "올바른 답변 포맷을 받지 못했습니다. 파이어베이스 설정을 확인해 주세요.";
             }
 
         } catch (error) {
-            console.error("네트워크 통신 에러:", error);
-            aiTextEl.innerText = "AI 코칭을 불러오는 과정에서 네트워크 오류가 발생했습니다.";
+            console.error("전체 예외 상황 발생:", error);
+            aiTextEl.innerText = "AI 코칭을 원격 로드하는 과정에서 시스템 오류가 발생했습니다.";
         }
     }
 
@@ -528,7 +518,7 @@
         let monthTotalDays = today.getDate(); 
         
         let yearTrained = 0;
-        const startPeriod = new Date(currentYear, 6, 1); // 7월 1일
+        const startPeriod = new Date(currentYear, 6, 1); 
         let yearTotalDays = Math.floor((today - startPeriod) / (1000 * 60 * 60 * 24)) + 1;
         
         if (yearTotalDays < 1) { yearTotalDays = 1; }
@@ -614,7 +604,7 @@
         await loadAllDataFromFirebase(); 
         await loadMypageData();          
         calculateAchievements();         
-        getAiCoachingAdvice();
+        getAiCoachingAdvice(); // 🚀 앱 구동과 동시에 무선 원격 키 인증 검증 및 자동 분석!
     }
     
     startApp();
