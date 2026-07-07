@@ -324,7 +324,7 @@
         } catch (error) { console.error(error); }
     }
 
-    // 2. 동적 프롬프트 학습 체계로 진화한 AI 수집 분석 함수
+// 2. 동적 프롬프트 학습 체계로 진화한 AI 수집 분석 함수
     async function getAiCoachingAdvice() {
         const aiTextEl = document.getElementById('aiResponseText');
         
@@ -363,7 +363,6 @@
         const sg = document.getElementById('shortGoal').value || "미입력";
         const memo = document.getElementById('userMemo').value || "없음";
 
-        // 사용자가 유동적으로 수정한 가이드를 AI 프롬프트에 직접 실시간 주입 (수정사항 2)
         const promptText = `
         너는 아주 전문적이고 날카로운 헬스&러닝 트레이너 코치야. 
         사용자의 신체 정보, 운동 목표, 직접 작성한 루틴 상세 정보, 그리고 최근 일주일 운동 기록을 보고 다음에 수행하면 가장 효과적일 운동 추천 및 스포츠 과학적 조언을 3줄 내외로 요약해 줘.
@@ -388,6 +387,7 @@
         - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
         `;
 
+        // 🔗 주소 규격 완벽 정정 (models/ 경로 추가)
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedApiKey}`;
 
         try {
