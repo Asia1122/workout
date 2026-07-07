@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>내 운동 기록장 (구글 공식 SDK 보안 버전)</title>
+    <title>내 운동 기록장 (구글 정식 인증 완료 버전)</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -202,13 +202,12 @@
 </div>
 
 <script type="module">
-    // 🔐 Firebase 핵심 모듈 및 Remote Config 모듈 임포트
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, deleteDoc, getDocs, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getRemoteConfig, fetchAndActivate, getString } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-remote-config.js";
 
-    // 🌟 [핵심 변경] 생(Raw) URL 통신 방식 버그 해결을 위한 구글 AI 스튜디오 공식 SDK 패키지 임포트
-    import { GoogleGenAI } from "https://esm.run/@google/generative-ai";
+    // 🛠️ [정정 패치] 구글 정식 클래스인 GoogleGenerativeAI 명칭으로 임포트 경로 고정
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBKB-jF9gcxB1SSgmBoitd_bcjW7tRosB0",
@@ -223,7 +222,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
-    // Remote Config 초기화 및 무비용 즉시 동기화(0초 캐시 마크) 세팅
     const remoteConfig = getRemoteConfig(app);
     remoteConfig.settings.minimumFetchIntervalMillis = 0; 
 
@@ -318,22 +316,20 @@
         } catch (error) { console.error(error); }
     }
 
-    // 🤖 구글 공식 SDK 전용 엔진으로 안전하게 리팩토링된 AI 수집 분석 함수
+    // 🤖 정식 패치된 클래스 이름으로 안전하게 호출하는 훈련 분석 스크립트
     async function getAiCoachingAdvice() {
         const aiTextEl = document.getElementById('aiResponseText');
         aiTextEl.innerText = "최근 일주일 기록 분석 중... 🤖⏳";
 
         try {
-            // 1. 파이어베이스 원격 구성(Remote Config)에서 시크릿 인증 키 복원
             await fetchAndActivate(remoteConfig);
             const cloudKey = getString(remoteConfig, 'GEMINI_API_KEY').trim();
 
             if (!cloudKey) {
-                aiTextEl.innerText = "⚠️ Remote Config 대시보드에 GEMINI_API_KEY 설정 및 게시가 차단 상태입니다. 파이어베이스 설정을 확인해 주세요.";
+                aiTextEl.innerText = "⚠️ Remote Config 대시보드에 GEMINI_API_KEY 설정이 누락되었습니다.";
                 return;
             }
 
-            // 2. 최근 7일 운동 일지 데이터 문자열 압축 조립
             const last7Days = [];
             for (let i = 6; i >= 0; i--) {
                 const d = new Date();
@@ -380,29 +376,25 @@
 
             [가이드라인]
             - 사용자가 입력한 A루틴과 B루틴의 구체적인 타겟 부위와 종목 구성을 명밀히 스캔하여 해부학적/스포츠과학적 연관성을 분석해 조언해 줘.
-            - 만약 어제 날짜에 B루틴을 했다면 그 안에 기재된 종목들을 쉬게 하고, 오늘 날짜에는 다른 부위를 쓰는 운동이나 러닝, 혹은 완전 휴식을 권장하는 식이어야 해.
             - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
             `;
 
-            // 🌟 3. [핵심 패치] 문제가 생기던 Raw URL 형식을 폐기하고 구글 공식 인스턴스 인터페이스 호출법을 주입
-            const aiEngine = new GoogleGenAI({ apiKey: cloudKey });
+            // 🌟 [수정 포인트] 정식 명칭인 GoogleGenerativeAI 클래스를 호출하여 초기화합니다.
+            const aiEngine = new GoogleGenerativeAI(cloudKey);
             const model = aiEngine.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-            // 구글 자체 내부 최적 라우팅 프로토콜 작동
-            const responseResult = await model.generateContent({
-                contents: [{ parts: [{ text: promptText }] }]
-            });
+            const responseResult = await model.generateContent(promptText);
 
             if (responseResult && responseResult.response) {
                 const aiReply = responseResult.response.text();
                 aiTextEl.innerText = aiReply;
             } else {
-                aiTextEl.innerText = "올바른 답변 스트림을 받지 못했습니다. 파이어베이스 매개변수를 다시 로드합니다.";
+                aiTextEl.innerText = "올바른 답변 스트림을 받지 못했습니다. 파이어베이스 설정을 확인해 주세요.";
             }
 
         } catch (error) {
-            console.error("구글 공식 SDK 작동 중 에러 검출:", error);
-            aiTextEl.innerText = `⚠️ AI 코칭 로드 실패: ${error.message || error}\n구글 AI 스튜디오 계정의 API 프로젝트 활성화 여부를 점검해 보세요.`;
+            console.error("구글 SDK 실행 중 최종 에러 검출:", error);
+            aiTextEl.innerText = `⚠️ AI 코칭 로드 실패: ${error.message || error}\n파이어베이스 대시보드 및 원격 구성 변수명을 재확인해 주세요.`;
         }
     }
 
