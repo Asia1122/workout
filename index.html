@@ -389,7 +389,7 @@
 
             // 5. 정식 SDK 클래스 인스턴스 생성 및 모델 호출
             const aiEngine = new GoogleGenerativeAI(cloudKey);
-            const model = aiEngine.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = aiEngine.getGenerativeModel({ model: "gemini-2.5-flash" });
 
             const responseResult = await model.generateContent(promptText);
 
