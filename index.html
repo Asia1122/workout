@@ -2,598 +2,206 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>내 운동 기록장 (구글 정식 인증 완료 버전)</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --primary: #4a90e2;
-            --accent-a: #ff6b6b;
-            --accent-b: #4ecdc4;
-            --accent-run: #ffbe0b;
-            --accent-rest: #a2a2a2;
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 450px; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
-        
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
-        h2 { color: #222; font-size: 1.4rem; flex: 1; text-align: center; margin-left: 34px; }
-        .user-icon-btn { background: #f0f4f8; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: background 0.2s; }
-        .user-icon-btn:hover { background: #e1e8f0; }
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-        .mypage-layer { display: none; position: absolute; top: 55px; right: 0; width: 320px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; padding: 15px; z-index: 100; max-height: 80vh; overflow-y: auto; }
-        .mypage-layer.active { display: block; }
-        .mypage-title { font-size: 1rem; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; color: var(--primary); }
-        .form-group { margin-bottom: 8px; display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.75rem; color: #718096; margin-bottom: 2px; font-weight: bold; }
-        .form-group input, .form-group textarea { padding: 6px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.85rem; }
-        .form-group textarea { resize: none; height: 50px; }
-        .mypage-close-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 0.9rem; cursor: pointer; color: #a0aec0; }
-        
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
-        .calendar-header button { background: none; border: none; font-size: 1.2rem; padding: 5px 10px; cursor: pointer; color: var(--primary); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day-name { font-size: 0.8rem; color: #888; font-weight: bold; padding-bottom: 5px; }
-        .day { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 8px; padding: 4px; font-size: 0.9rem; cursor: pointer; border: 2px solid transparent; position: relative; }
-        .day.today { border-color: var(--primary); font-weight: bold; }
-        .day.selected { background: #e3f2fd; }
-        .day .dots { display: flex; gap: 2px; justify-content: center; width: 100%; min-height: 6px; overflow: hidden; flex-wrap: wrap; }
-        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-        
-        .record-box { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #edf2f7; }
-        .selected-date-title { font-size: 1rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); text-align: center; }
-        
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .option-btn { padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; background: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-        
-        .option-btn[data-type="A"].active { background: var(--accent-a); color: white; border-color: var(--accent-a); }
-        .option-btn[data-type="B"].active { background: var(--accent-b); color: white; border-color: var(--accent-b); }
-        .option-btn[data-type="Run"].active { background: var(--accent-run); color: white; border-color: var(--accent-run); }
-        .option-btn[data-type="Rest"].active { background: var(--accent-rest); color: white; border-color: var(--accent-rest); }
-        
-        .run-distance-box { display: none; background: #fffde7; padding: 10px; border-radius: 8px; border: 1px solid #fff59d; margin-bottom: 12px; gap: 8px; align-items: center; justify-content: center; }
-        .run-distance-box.active { display: flex; }
-        .run-input { width: 80px; padding: 6px; text-align: center; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; }
-        
-        .etc-box { display: flex; gap: 8px; margin-top: 10px; }
-        .etc-input { flex: 1; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
-        .etc-btn { padding: 10px 15px; background: #4a90e2; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .badge-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
-        .badge { font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; color: white; font-weight: bold; }
-        .badge.A { background: var(--accent-a); }
-        .badge.B { background: var(--accent-b); }
-        .badge.Run { background: var(--accent-run); }
-        .badge.Rest { background: var(--accent-rest); }
-        .badge.Etc { background: #718096; }
-        
-        .stats-board { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e2e8f0; }
-        .stats-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #4a5568; }
-        .stats-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; }
-        .stats-val { font-weight: bold; color: var(--primary); }
+    <title>Workout Calendar v2</title>
 
-        .ai-coach-card { margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 12px; border: 1px solid #d0e0ff; position: relative; }
-        .ai-title { font-size: 0.95rem; font-weight: bold; color: #1a365d; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-        .ai-content { font-size: 0.85rem; color: #2d3748; line-height: 1.5; white-space: pre-wrap; }
-        .ai-refresh-btn { background: #4a90e2; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; font-weight: bold; margin-top: 8px; float: right; }
+    <link rel="stylesheet" href="style.css">
 
-        .routine-guide-box { width: 100%; max-width: 450px; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .guide-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; color: #2d3748; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; text-align: center;}
-        .routine-card { margin-bottom: 15px; padding: 12px; border-radius: 8px; }
-        .routine-card.a-style { background: #fff5f5; border-left: 4px solid var(--accent-a); }
-        .routine-card.b-style { background: #e6fffa; border-left: 4px solid var(--accent-b); }
-        .routine-card h3 { font-size: 0.95rem; margin-bottom: 6px; color: #2d3748; }
-        .routine-card p { font-size: 0.85rem; color: #4a5568; line-height: 1.5; white-space: pre-wrap; }
-        
-        #loading { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 10px; }
-    </style>
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#4a90e2">
 </head>
+
 <body>
 
-<div class="container">
-    <div class="header-area">
-        <h2>💪 내 운동 달력 (클라우드)</h2>
-        <button class="user-icon-btn" id="userIconBtn">👤</button>
-        
-        <div class="mypage-layer" id="mypageLayer">
-            <button class="mypage-close-btn" id="mypageCloseBtn">✕</button>
-            <div class="mypage-title">👤 내 신체 정보 및 루틴 설정</div>
-            <div class="form-group">
-                <label>키 (cm)</label>
-                <input type="number" id="userHeight" placeholder="예: 175">
-            </div>
-            <div class="form-group">
-                <label>몸무게 (kg)</label>
-                <input type="number" id="userWeight" placeholder="예: 70">
-            </div>
-            <div class="form-group">
-                <label style="color:var(--accent-a);">🔴 A 루틴 설정 내용</label>
-                <textarea id="routineADesc" placeholder="예: 스쿼트, 원암 덤벨 로우, 해머 컬"></textarea>
-            </div>
-            <div class="form-group">
-                <label style="color:var(--accent-b);">🟢 B 루틴 설정 내용</label>
-                <textarea id="routineBDesc" placeholder="예: 푸쉬업, 사레레 3kg 30회, 플랭크"></textarea>
-            </div>
-            <div class="form-group">
-                <label>장기 목표</label>
-                <textarea id="longGoal" placeholder="예: 하프 마라톤 완주"></textarea>
-            </div>
-            <div class="form-group">
-                <label>단기 목표</label>
-                <textarea id="shortGoal" placeholder="예: 주 4회 회복 운동 채우기"></textarea>
-            </div>
-            <div class="form-group">
-                <label>특이사항 (선택)</label>
-                <textarea id="userMemo" placeholder="예: 오른쪽 무릎 주의"></textarea>
-            </div>
-            <button class="etc-btn" id="saveMypage" style="width:100%; padding: 8px; margin-top: 5px; font-size: 0.85rem;">설정 및 루틴 저장</button>
-        </div>
+<header class="header">
+
+    <h1>
+        💪 Workout Calendar
+    </h1>
+
+    <div class="user-panel">
+
+        <span id="userName">
+            로그인 안됨
+        </span>
+
+        <button id="loginBtn">
+            Google 로그인
+        </button>
+
+        <button id="logoutBtn" class="hidden">
+            로그아웃
+        </button>
+
     </div>
 
-    <div id="loading">데이터 불러오는 중...</div>
-    
+</header>
+
+
+<main>
+
+<section class="calendar-card">
+
     <div class="calendar-header">
-        <button id="prevMonth">◀</button>
-        <span id="currentMonthYear"></span>
-        <button id="nextMonth">▶</button>
-    </div>
-    
-    <div class="calendar-grid" id="calendarGrid"></div>
-    
-    <div class="record-box">
-        <div class="selected-date-title" id="selectedDateText">날짜를 선택해 주세요</div>
-        
-        <div class="options-grid">
-            <button class="option-btn" data-type="A">🔴 A루틴</button>
-            <button class="option-btn" data-type="B">🟢 B루틴</button>
-            <button class="option-btn" data-type="Run">🟡 달리기</button>
-            <button class="option-btn" data-type="Rest">⚪ 휴식</button>
-        </div>
-        
-        <div class="run-distance-box" id="runDistanceBox">
-            <span>🏃‍♂️ 러닝 거리 입력:</span>
-            <input type="number" step="0.1" class="run-input" id="runDistanceInput" placeholder="0.0">
-            <span>km</span>
-            <button class="etc-btn" id="saveDistance" style="padding: 5px 10px; font-size: 0.85rem;">저장</button>
-        </div>
-        
-        <div class="etc-box">
-            <input type="text" class="etc-input" id="etcInput" placeholder="기타 항목 직접 입력 (예: 밴드풀업)">
-            <button class="etc-btn" id="saveEtc">추가</button>
-        </div>
-        
-        <div class="badge-list" id="dayBadgeList"></div>
+
+        <button id="prevMonth">
+            ◀
+        </button>
+
+        <h2 id="currentMonth">
+            2026년 7월
+        </h2>
+
+        <button id="nextMonth">
+            ▶
+        </button>
+
     </div>
 
-    <div class="ai-coach-card">
-        <div class="ai-title">🤖 Gemini 전담 AI 코치 조언</div>
-        <div class="ai-content" id="aiResponseText">클라우드 원격 서버에서 인증 동기화 중... 🤖⏳</div>
-        <button class="ai-refresh-btn" id="askAiBtn">기록 다시 분석하기</button>
-        <div style="clear:both;"></div>
+    <div id="calendarGrid"
+         class="calendar-grid">
+
     </div>
 
-    <div class="stats-board">
-        <div class="stats-title">📊 운동 실천률 통계</div>
-        <div class="stats-row">
-            <span>이번 달 실천률 :</span>
-            <span class="stats-val" id="monthStats">0.0%</span>
-        </div>
-        <div class="stats-row">
-            <span>올해 실천률 (7/1 기준) :</span>
-            <span class="stats-val" id="yearStats">0.0%</span>
-        </div>
+</section>
+
+
+<section class="record-card">
+
+    <h3 id="selectedDate">
+        날짜 선택
+    </h3>
+
+    <div class="buttons">
+
+        <button data-type="A">
+            🔴 A
+        </button>
+
+        <button data-type="B">
+            🟢 B
+        </button>
+
+        <button data-type="Run">
+            🟡 Run
+        </button>
+
+        <button data-type="Rest">
+            ⚪ Rest
+        </button>
+
     </div>
-</div>
 
-<div class="routine-guide-box">
-    <div class="guide-title">📋 내 루틴 가이드북</div>
-    <div class="routine-card a-style">
-        <h3>🔴 A 루틴 요약</h3>
-        <p id="guideTextA">마이페이지에서 루틴 내용을 설정해 주세요.</p>
+
+    <div id="runBox" class="hidden">
+
+        <input
+                type="number"
+                id="runDistance"
+                step="0.1"
+                placeholder="거리(km)">
+
+        <button id="saveRun">
+            저장
+        </button>
+
     </div>
-    <div class="routine-card b-style">
-        <h3>🟢 B 루틴 요약</h3>
-        <p id="guideTextB">마이페이지에서 루틴 내용을 설정해 주세요.</p>
+
+
+    <div class="etc-area">
+
+        <input
+                id="etcInput"
+                placeholder="기타 운동">
+
+        <button id="saveEtc">
+            추가
+        </button>
+
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, deleteDoc, getDocs, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getRemoteConfig, fetchAndActivate, getString } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-remote-config.js";
+    <div id="badgeArea">
 
-    // 🛠️ [정정 패치] 구글 정식 클래스인 GoogleGenerativeAI 명칭으로 임포트 경로 고정
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+    </div>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBKB-jF9gcxB1SSgmBoitd_bcjW7tRosB0",
-        authDomain: "workout-6b5dd.firebaseapp.com",
-        projectId: "workout-6b5dd",
-        storageBucket: "workout-6b5dd.firebasestorage.app",
-        messagingSenderId: "292085015914",
-        appId: "1:292085015914:web:02fc103748068644f9f113",
-        measurementId: "G-W766339PZZ"
-    };
+</section>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    const remoteConfig = getRemoteConfig(app);
-    remoteConfig.settings.minimumFetchIntervalMillis = 0; 
 
-    let currentDate = new Date();
-    let selectedDateStr = getFormattedDate(currentDate);
-    let workoutData = {}; 
+<section class="stats-card">
 
-    const monthNames = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
-    const colors = { A: '#ff6b6b', B: '#4ecdc4', Run: '#ffbe0b', Rest: '#a2a2a2', Etc: '#718096' };
+    <h3>
+        📊 운동 통계
+    </h3>
 
-    function getFormattedDate(date) {
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    }
+    <p id="monthStats">
+        이번 달 : 0%
+    </p>
 
-    const userIconBtn = document.getElementById('userIconBtn');
-    const mypageLayer = document.getElementById('mypageLayer');
-    const mypageCloseBtn = document.getElementById('mypageCloseBtn');
+    <p id="yearStats">
+        올해 : 0%
+    </p>
 
-    userIconBtn.addEventListener('click', () => mypageLayer.classList.toggle('active'));
-    mypageCloseBtn.addEventListener('click', () => mypageLayer.classList.remove('active'));
+</section>
 
-    async function loadMypageData() {
-        try {
-            const docRef = doc(db, "userProfile", "profile");
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('userHeight').value = data.height || "";
-                document.getElementById('userWeight').value = data.weight || "";
-                document.getElementById('routineADesc').value = data.routineA || "";
-                document.getElementById('routineBDesc').value = data.routineB || "";
-                document.getElementById('longGoal').value = data.longGoal || "";
-                document.getElementById('shortGoal').value = data.shortGoal || "";
-                document.getElementById('userMemo').value = data.memo || "";
 
-                if(data.routineA) document.getElementById('guideTextA').innerText = data.routineA;
-                if(data.routineB) document.getElementById('guideTextB').innerText = data.routineB;
-            }
-        } catch (e) { console.error("프로필 로드 에러:", e); }
-    }
+<section class="ai-card">
 
-    document.getElementById('saveMypage').addEventListener('click', async () => {
-        const height = document.getElementById('userHeight').value;
-        const weight = document.getElementById('userWeight').value;
-        const routineA = document.getElementById('routineADesc').value;
-        const routineB = document.getElementById('routineBDesc').value;
-        const longGoal = document.getElementById('longGoal').value;
-        const shortGoal = document.getElementById('shortGoal').value;
-        const memo = document.getElementById('userMemo').value;
+    <div class="title">
 
-        try {
-            await setDoc(doc(db, "userProfile", "profile"), {
-                height, weight, routineA, routineB, longGoal, shortGoal, memo
-            });
-            alert("정보가 성공적으로 동기화되었습니다! 💪");
-            mypageLayer.classList.remove('active');
-            
-            if(routineA) document.getElementById('guideTextA').innerText = routineA;
-            if(routineB) document.getElementById('guideTextB').innerText = routineB;
-            getAiCoachingAdvice();
-        } catch (e) { alert("저장 실패"); }
-    });
+        🤖 AI Coach
 
-    async function loadAllDataFromFirebase() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "workouts"));
-            workoutData = {};
-            querySnapshot.forEach((doc) => {
-                workoutData[doc.id] = doc.data().exercises;
-            });
-            document.getElementById('loading').style.display = 'none';
-            initCalendar();
-        } catch (error) {
-            console.error("데이터 로드 실패:", error);
-            document.getElementById('loading').innerText = "데이터 로드 실패 ❌";
-        }
-    }
+        <button id="refreshAI">
+            분석
+        </button>
 
-    async function syncWithFirebase(dateStr) {
-        try {
-            if (workoutData[dateStr] && workoutData[dateStr].length > 0) {
-                await setDoc(doc(db, "workouts", dateStr), {
-                    exercises: workoutData[dateStr]
-                });
-            } else {
-                await deleteDoc(doc(db, "workouts", dateStr));
-                if (workoutData[dateStr]) delete workoutData[dateStr];
-            }
-            calculateAchievements(); 
-            initCalendar();
-            getAiCoachingAdvice();
-        } catch (error) { console.error(error); }
-    }
+    </div>
 
-    // 🤖 정식 패치된 클래스 이름으로 안전하게 호출하는 훈련 분석 스크립트
-    async function getAiCoachingAdvice() {
-        const aiTextEl = document.getElementById('aiResponseText');
-        aiTextEl.innerText = "최근 일주일 기록 분석 중... 🤖⏳";
+    <pre id="aiResult">
+AI 분석 결과가 표시됩니다.
+    </pre>
 
-        try {
-            await fetchAndActivate(remoteConfig);
-            const cloudKey = getString(remoteConfig, 'GEMINI_API_KEY').trim();
+</section>
 
-            if (!cloudKey) {
-                aiTextEl.innerText = "⚠️ Remote Config 대시보드에 GEMINI_API_KEY 설정이 누락되었습니다.";
-                return;
-            }
 
-            const last7Days = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                last7Days.push(getFormattedDate(d));
-            }
+<section class="routine-card">
 
-            let workoutHistorySummary = "";
-            last7Days.forEach(dateStr => {
-                const currentDayEntries = workoutData[dateStr] || [];
-                if(currentDayEntries.length === 0) {
-                    workoutHistorySummary += `${dateStr}: 기록 없음 또는 운동 안함\n`;
-                } else {
-                    const exString = currentDayEntries.map(e => e.text).join(", ");
-                    workoutHistorySummary += `${dateStr}: ${exString}\n`;
-                }
-            });
+    <h2>
+        내 루틴
+    </h2>
 
-            const h = document.getElementById('userHeight').value || "미입력";
-            const w = document.getElementById('userWeight').value || "미입력";
-            const rA = document.getElementById('routineADesc').value || "정의되지 않음";
-            const rB = document.getElementById('routineBDesc').value || "정의되지 않음";
-            const lg = document.getElementById('longGoal').value || "미입력";
-            const sg = document.getElementById('shortGoal').value || "미입력";
-            const memo = document.getElementById('userMemo').value || "없음";
+    <div>
 
-            const promptText = `
-            너는 아주 전문적이고 날카로운 헬스&러닝 트레이너 코치야. 
-            사용자의 신체 정보, 운동 목표, 직접 작성한 루틴 상세 정보, 그리고 최근 일주일 운동 기록을 보고 다음에 수행하면 가장 효과적일 운동 추천 및 스포츠 과학적 조언을 3줄 내외로 요약해 줘.
+        <h3>
+            🔴 A
+        </h3>
 
-            [사용자가 정의한 맞춤 루틴 가이드 정보]
-            - A 루틴 상세 내용: ${rA}
-            - B 루틴 상세 내용: ${rB}
-            - 기본 제공 공통 종목: 달리기 (유산소, km 기록 가능), 휴식, 기타 커스텀 직접 입력 항목
+        <p id="guideA">
 
-            [사용자 프로필]
-            - 키: ${h}cm / 몸무게: ${w}kg
-            - 장기 목표: ${lg}
-            - 단기 목표: ${sg}
-            - 신체 특이사항 및 메모: ${memo}
+        </p>
 
-            [최근 일주일간의 실제 운동 일지 순서]
-            ${workoutHistorySummary}
+    </div>
 
-            [가이드라인]
-            - 사용자가 입력한 A루틴과 B루틴의 구체적인 타겟 부위와 종목 구성을 명밀히 스캔하여 해부학적/스포츠과학적 연관성을 분석해 조언해 줘.
-            - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘. 뻔한 격려 말고 진짜 내 전담 트레이너처럼 실질적 가이드를 줘.
-            `;
+    <div>
 
-            // 🌟 [수정 포인트] 정식 명칭인 GoogleGenerativeAI 클래스를 호출하여 초기화합니다.
-            const aiEngine = new GoogleGenerativeAI(cloudKey);
-            const model = aiEngine.getGenerativeModel({ model: "gemini-1.5-flash" });
+        <h3>
+            🟢 B
+        </h3>
 
-            const responseResult = await model.generateContent(promptText);
+        <p id="guideB">
 
-            if (responseResult && responseResult.response) {
-                const aiReply = responseResult.response.text();
-                aiTextEl.innerText = aiReply;
-            } else {
-                aiTextEl.innerText = "올바른 답변 스트림을 받지 못했습니다. 파이어베이스 설정을 확인해 주세요.";
-            }
+        </p>
 
-        } catch (error) {
-            console.error("구글 SDK 실행 중 최종 에러 검출:", error);
-            aiTextEl.innerText = `⚠️ AI 코칭 로드 실패: ${error.message || error}\n파이어베이스 대시보드 및 원격 구성 변수명을 재확인해 주세요.`;
-        }
-    }
+    </div>
 
-    document.getElementById('askAiBtn').addEventListener('click', getAiCoachingAdvice);
+</section>
 
-    function initCalendar() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        
-        document.getElementById('currentMonthYear').innerText = `${year}년 ${monthNames[month]}`;
-        
-        const firstDayIndex = new Date(year, month, 1).getDay();
-        const lastDay = new Date(year, month + 1, 0).getDate();
-        
-        const grid = document.getElementById('calendarGrid');
-        grid.innerHTML = '';
-        
-        const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
-        daysOfWeek.forEach(d => {
-            const el = document.createElement('div');
-            el.className = 'day-name';
-            el.innerText = d;
-            grid.appendChild(el);
-        });
-        
-        for (let i = 0; i < firstDayIndex; i++) {
-            grid.appendChild(document.createElement('div'));
-        }
-        
-        const todayStr = getFormattedDate(new Date());
-        for (let i = 1; i <= lastDay; i++) {
-            const dayEl = document.createElement('div');
-            dayEl.className = 'day';
-            const thisDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            
-            dayEl.innerHTML = `<span>${i}</span><div class="dots"></div>`;
-            if (thisDateStr === todayStr) dayEl.classList.add('today');
-            if (thisDateStr === selectedDateStr) dayEl.classList.add('selected');
-            
-            const dotsEl = dayEl.querySelector('.dots');
-            if (workoutData[thisDateStr]) {
-                workoutData[thisDateStr].forEach(item => {
-                    const dot = document.createElement('span');
-                    dot.className = 'dot';
-                    dot.style.backgroundColor = colors[item.type] || colors.Etc;
-                    dotsEl.appendChild(dot);
-                });
-            }
-            
-            dayEl.addEventListener('click', () => {
-                selectedDateStr = thisDateStr;
-                initCalendar();
-            });
-            grid.appendChild(dayEl);
-        }
-        
-        updateInputSection();
-    }
+</main>
 
-    function updateInputSection() {
-        const [y, m, d] = selectedDateStr.split('-');
-        document.getElementById('selectedDateText').innerText = `${parseInt(m)}월 ${parseInt(d)}일 운동 선택`;
-        
-        const currentEntries = workoutData[selectedDateStr] || [];
-        
-        let hasRun = false;
-        let runKm = "";
 
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            const type = btn.getAttribute('data-type');
-            const found = currentEntries.find(e => e.type === type);
-            if (found) {
-                btn.classList.add('active');
-                if(type === "Run") { hasRun = true; runKm = found.km || ""; }
-            }
-            else btn.classList.remove('active');
-        });
-        
-        const runBox = document.getElementById('runDistanceBox');
-        const runInput = document.getElementById('runDistanceInput');
-        if(hasRun) {
-            runBox.classList.add('active');
-            runInput.value = runKm;
-        } else {
-            runBox.classList.remove('active');
-            runInput.value = "";
-        }
-        
-        const badgeList = document.getElementById('dayBadgeList');
-        badgeList.innerHTML = '';
-        currentEntries.forEach((entry, idx) => {
-            const badge = document.createElement('span');
-            badge.className = `badge ${entry.type}`;
-            badge.innerText = entry.text;
-            badge.style.cursor = 'pointer';
-            badge.addEventListener('click', () => removeEntry(idx));
-            badgeList.appendChild(badge);
-        });
-    }
+<script type="module" src="js/app.js"></script>
 
-    function calculateAchievements() {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth(); 
-        
-        let monthTrained = 0;
-        let monthTotalDays = today.getDate(); 
-        
-        let yearTrained = 0;
-        const startPeriod = new Date(currentYear, 6, 1); 
-        let yearTotalDays = Math.floor((today - startPeriod) / (1000 * 60 * 60 * 24)) + 1;
-        
-        if (yearTotalDays < 1) { yearTotalDays = 1; }
-
-        Object.keys(workoutData).forEach(dateStr => {
-            const d = new Date(dateStr);
-            const entries = workoutData[dateStr] || [];
-            
-            const isWorkoutDay = entries.some(e => e.type === 'A' || e.type === 'B' || e.type === 'Run' || e.type === 'Etc');
-            
-            if (isWorkoutDay) {
-                if (d.getFullYear() === currentYear && d.getMonth() === currentMonth && d <= today) {
-                    monthTrained++;
-                }
-                if (d >= startPeriod && d <= today) {
-                    yearTrained++;
-                }
-            }
-        });
-
-        const monthRate = ((monthTrained / monthTotalDays) * 100).toFixed(1);
-        const yearRate = ((yearTrained / yearTotalDays) * 100).toFixed(1);
-
-        document.getElementById('monthStats').innerText = `${monthRate}% (${monthTrained}/${monthTotalDays}일)`;
-        document.getElementById('yearStats').innerText = `${yearRate}% (${yearTrained}/${yearTotalDays}일)`;
-    }
-
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const type = this.getAttribute('data-type');
-            let text = this.innerText;
-            
-            if (!workoutData[selectedDateStr]) workoutData[selectedDateStr] = [];
-            
-            const index = workoutData[selectedDateStr].findIndex(e => e.type === type);
-            if (index > -1) {
-                workoutData[selectedDateStr].splice(index, 1);
-            } else {
-                if(type === "Run") {
-                    workoutData[selectedDateStr].push({ type, text: "🟡 달리기", km: "" });
-                } else {
-                    workoutData[selectedDateStr].push({ type, text });
-                }
-            }
-            syncWithFirebase(selectedDateStr);
-        });
-    });
-
-    document.getElementById('saveDistance').addEventListener('click', () => {
-        const kmVal = document.getElementById('runDistanceInput').value.trim();
-        if(!workoutData[selectedDateStr]) return;
-        
-        const runIdx = workoutData[selectedDateStr].findIndex(e => e.type === "Run");
-        if(runIdx > -1) {
-            workoutData[selectedDateStr][runIdx].km = kmVal;
-            workoutData[selectedDateStr][runIdx].text = `🟡 달리기 (${kmVal}km)`;
-            syncWithFirebase(selectedDateStr);
-            alert(`${kmVal}km 저장 완료!`);
-        }
-    });
-
-    document.getElementById('saveEtc').addEventListener('click', () => {
-        const input = document.getElementById('etcInput');
-        const text = input.value.trim();
-        if (!text) return;
-        
-        if (!workoutData[selectedDateStr]) workoutData[selectedDateStr] = [];
-        workoutData[selectedDateStr].push({ type: 'Etc', text: text });
-        
-        input.value = '';
-        syncWithFirebase(selectedDateStr);
-    });
-
-    function removeEntry(index) {
-        workoutData[selectedDateStr].splice(index, 1);
-        syncWithFirebase(selectedDateStr);
-    }
-
-    document.getElementById('prevMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); initCalendar(); });
-    document.getElementById('nextMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); initCalendar(); });
-
-    async function startApp() {
-        await loadAllDataFromFirebase(); 
-        await loadMypageData();          
-        calculateAchievements();         
-        getAiCoachingAdvice(); 
-    }
-    
-    startApp();
-</script>
 </body>
 </html>
