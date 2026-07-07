@@ -237,7 +237,7 @@
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
 
-    // 마이페이지 모달 토글 제어
+// 마이페이지 모달 토글 제어
     const userIconBtn = document.getElementById('userIconBtn');
     const mypageLayer = document.getElementById('mypageLayer');
     const mypageCloseBtn = document.getElementById('mypageCloseBtn');
@@ -274,6 +274,8 @@
             });
             alert("신체 정보 및 목표 저장 완료! 💪");
             mypageLayer.classList.remove('active');
+            // 프로필이 새로 저장되면 AI 조언도 자동으로 새로고침
+            getAiCoachingAdvice();
         } catch (e) { alert("저장 실패"); }
     });
 
@@ -305,15 +307,16 @@
             }
             calculateAchievements(); 
             initCalendar();
+            // 운동 기록을 터치해서 변경할 때도 AI 조언이 자동으로 실시간 갱신됨
+            getAiCoachingAdvice();
         } catch (error) { console.error(error); }
     }
 
-// 3. Gemini 1.5 Flash API 호출 및 최근 일주일 분석 조언 연동
-    document.getElementById('askAiBtn').addEventListener('click', async () => {
+    // 3. 핵심: Gemini 1.5 Flash API 호출 및 조언 가져오기 공통 함수 (v1beta 주소로 수정)
+    async function getAiCoachingAdvice() {
         const aiTextEl = document.getElementById('aiResponseText');
         aiTextEl.innerText = "최근 일주일 기록 분석 중... 🤖⏳";
 
-        // 최근 일주일 날짜 배열 확보
         const last7Days = [];
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
@@ -321,7 +324,6 @@
             last7Days.push(getFormattedDate(d));
         }
 
-        // 일주일 간의 기록 문자열 조합
         let workoutHistorySummary = "";
         last7Days.forEach(dateStr => {
             const currentDayExercises = workoutData[dateStr] || [];
@@ -333,7 +335,6 @@
             }
         });
 
-        // 마이페이지 데이터 긁어오기
         const h = document.getElementById('userHeight').value || "미입력";
         const w = document.getElementById('userWeight').value || "미입력";
         const lg = document.getElementById('longGoal').value || "미입력";
@@ -354,13 +355,13 @@
         ${workoutHistorySummary}
 
         [가이드라인]
-        - 뻔한 말 대신 구체적으로 분석해 줘.
+        - 뻔한 말 대신 구체적으로 "어제 무슨 부위를 썼으니 오늘은 A루틴(하체/등)을 추천합니다" 혹은 "관절 회복을 위해 러닝 강도를 낮추거나 휴식을 추천합니다" 형태로 분석해 줘.
         - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘.
         `;
 
-        // 보낸 주소 규격 완벽 수정 (v1beta -> v1, :generateContent 위치 조정)
+        // 구글 AI 스튜디오 무료 키 지원 정식 v1beta 주소 규격 적용
         const apiKey = "AQ.Ab8RN6IGU83Mu3KLQaJRts_fz1nJ6X8ZuRv7rdIsIByjMaYQ6w";
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
@@ -373,7 +374,6 @@
 
             const result = await response.json();
             
-            // 구글 서버가 에러 코드를 반환했는지 안전하게 예외처리 가드 적용
             if (result.error) {
                 console.error("Gemini API 에러:", result.error);
                 aiTextEl.innerText = `AI 응답 실패: ${result.error.message}`;
@@ -391,7 +391,10 @@
             console.error("네트워크 통신 에러:", error);
             aiTextEl.innerText = "AI 코칭을 불러오는 과정에서 네트워크 오류가 발생했습니다.";
         }
-    });
+    }
+
+    // 수동으로 분석 버튼을 누를 때도 작동 유지
+    document.getElementById('askAiBtn').addEventListener('click', getAiCoachingAdvice);
 
     function initCalendar() {
         const year = currentDate.getFullYear();
@@ -579,10 +582,14 @@
     document.getElementById('prevMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); initCalendar(); });
     document.getElementById('nextMonth').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); initCalendar(); });
 
+    // 4. 앱 시작 가동 체계 및 자동 AI 동기화 추가
     async function startApp() {
-        await loadAllDataFromFirebase();
-        await loadMypageData();
-        calculateAchievements();
+        await loadAllDataFromFirebase(); // 파이어베이스 운동 데이터 수집
+        await loadMypageData();          // 마이페이지 데이터 수집
+        calculateAchievements();         // 실천률 연단위 스캔
+        
+        // 데이터 수집이 끝나면 접속과 동시에 최초 1회 즉시 AI 조언 작동!
+        getAiCoachingAdvice();
     }
     
     startApp();
