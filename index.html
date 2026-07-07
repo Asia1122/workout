@@ -308,7 +308,7 @@
         } catch (error) { console.error(error); }
     }
 
-    // 3. Gemini 1.5 Flash API 호출 및 최근 일주일 분석 조언 연동 (수정 2)
+// 3. Gemini 1.5 Flash API 호출 및 최근 일주일 분석 조언 연동
     document.getElementById('askAiBtn').addEventListener('click', async () => {
         const aiTextEl = document.getElementById('aiResponseText');
         aiTextEl.innerText = "최근 일주일 기록 분석 중... 🤖⏳";
@@ -340,7 +340,6 @@
         const sg = document.getElementById('shortGoal').value || "미입력";
         const memo = document.getElementById('userMemo').value || "없음";
 
-        // 프롬프트 작성
         const promptText = `
         너는 아주 전문적이고 날카로운 헬스&러닝 트레이너 코치야. 
         사용자의 신체 정보와 운동 목표, 그리고 최근 일주일 운동 기록을 보고 다음에 수행하면 가장 효과적일 운동 추천 및 스포츠 과학적 조언을 3줄 내외로 요약해 줘.
@@ -355,13 +354,13 @@
         ${workoutHistorySummary}
 
         [가이드라인]
-        - 뻔한 말 대신 구체적으로 "어제 무슨 부위를 썼으니 오늘은 A루틴(하체/등)을 추천합니다" 혹은 "관절 회복을 위해 러닝 강도를 낮추거나 휴식을 추천합니다" 형태로 분석해 줘.
+        - 뻔한 말 대신 구체적으로 분석해 줘.
         - 친근하고 정중하며 동기부여가 되는 말투로 한국어로 답변해 줘.
         `;
 
-        // 발급해주신 프록시 API 키 적용 연동
+        // 보낸 주소 규격 완벽 수정 (v1beta -> v1, :generateContent 위치 조정)
         const apiKey = "AQ.Ab8RN6IGU83Mu3KLQaJRts_fz1nJ6X8ZuRv7rdIsIByjMaYQ6w";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
@@ -371,12 +370,26 @@
                     contents: [{ parts: [{ text: promptText }] }]
                 })
             });
+
             const result = await response.json();
-            const aiReply = result.candidates[0].content.parts[0].text;
-            aiTextEl.innerText = aiReply;
+            
+            // 구글 서버가 에러 코드를 반환했는지 안전하게 예외처리 가드 적용
+            if (result.error) {
+                console.error("Gemini API 에러:", result.error);
+                aiTextEl.innerText = `AI 응답 실패: ${result.error.message}`;
+                return;
+            }
+
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                const aiReply = result.candidates[0].content.parts[0].text;
+                aiTextEl.innerText = aiReply;
+            } else {
+                aiTextEl.innerText = "올바른 답변 포맷을 받지 못했습니다. 데이터를 확인해 주세요.";
+            }
+
         } catch (error) {
-            console.error(error);
-            aiTextEl.innerText = "AI 코칭을 불러오는 과정에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            console.error("네트워크 통신 에러:", error);
+            aiTextEl.innerText = "AI 코칭을 불러오는 과정에서 네트워크 오류가 발생했습니다.";
         }
     });
 
